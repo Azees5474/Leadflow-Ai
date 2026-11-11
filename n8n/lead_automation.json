@@ -1,0 +1,166 @@
+{
+  "name": "LeadFlow A",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "lead-intake",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "3aa09850-64f5-40ce-9f07-6b23e0109a63",
+      "name": "Webhook",
+      "webhookId": "daf31972-2e34-43c4-bd3d-dbd0e9d86980"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ 'http://127.0.0.1:8010/api/leads/' + $json.body.lead.id + '/analyze' }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        224,
+        0
+      ],
+      "id": "f041af10-4a72-4f77-9a93-afec6075307b",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 4
+          },
+          "conditions": [
+            {
+              "id": "72d13d1c-e00e-4498-b248-9ce43674b534",
+              "leftValue": "={{ ['HIGH', 'MEDIUM'].includes($json.priority) }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.4,
+      "position": [
+        448,
+        0
+      ],
+      "id": "285c308c-0b3b-43e7-b661-56e698bd327e",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "fromEmail": "azeesthekingmaker@gmail.com",
+        "toEmail": "={{ $json.email }}",
+        "subject": "Thanks for your inquiry",
+        "emailFormat": "text",
+        "text": "=Hi {{ $json.name }},\n\nThanks for reaching out. We received your inquiry and will follow up to learn more about what you need.\n\nBest,\nLeadFlow Team",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        640,
+        -96
+      ],
+      "id": "cdd3eaae-6522-45b5-9665-2d6e8e230f5d",
+      "name": "Send an Email",
+      "webhookId": "2348958f-75dc-44ce-acea-a8fe4c3d18af",
+      "credentials": {
+        "smtp": {
+          "id": "riOh47pyz7JR0SdI",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ 'http://127.0.0.1:8010/api/leads/' + $('HTTP Request').first().json.id + '/email-sent' }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { accepted: $json.accepted ?? [] } }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        864,
+        -96
+      ],
+      "id": "02881f19-7de0-4094-8530-78e025492881",
+      "name": "HTTP Request 1"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Send an Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send an Email": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request 1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  }
+}
