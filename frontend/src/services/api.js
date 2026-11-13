@@ -38,7 +38,7 @@ async function request(endpoint, options = {}) {
     return data;
   } catch (err) {
     if (err.name === 'TypeError' && err.message.includes('Failed to fetch')) {
-      const networkError = new Error('Cannot connect to backend server. Make sure FastAPI is running on port 8000.');
+      const networkError = new Error(`Cannot connect to the backend at ${API_BASE_URL}. Check that FastAPI is running.`);
       networkError.isNetworkError = true;
       throw networkError;
     }
