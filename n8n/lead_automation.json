@@ -68,7 +68,7 @@
     },
     {
       "parameters": {
-        "fromEmail": "azeesthekingmaker@gmail.com",
+        "fromEmail": "sender@example.com",
         "toEmail": "={{ $json.email }}",
         "subject": "Thanks for your inquiry",
         "emailFormat": "text",
@@ -83,13 +83,7 @@
       ],
       "id": "cdd3eaae-6522-45b5-9665-2d6e8e230f5d",
       "name": "Send an Email",
-      "webhookId": "2348958f-75dc-44ce-acea-a8fe4c3d18af",
-      "credentials": {
-        "smtp": {
-          "id": "riOh47pyz7JR0SdI",
-          "name": "SMTP account"
-        }
-      }
+      "webhookId": "2348958f-75dc-44ce-acea-a8fe4c3d18af"
     },
     {
       "parameters": {

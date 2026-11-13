@@ -1,29 +1,10 @@
-# LeadFlow AI - n8n Workflow Automation
+# LeadFlow AI workflow
 
-This directory contains the workflow definitions and execution assets for n8n.
+1. Start FastAPI on port `8010` and open your local n8n instance on port `5678`.
+2. Import [`lead_automation.json`](lead_automation.json). It receives `POST /webhook/lead-intake`, calls the lead analysis endpoint, and branches on the returned priority.
+3. For analysis only, disconnect the email branch before publishing. To test email, select your SMTP credential in **Send an Email** and replace the sender with the address authorized by that credential. Publish the workflow to enable the production webhook.
+4. Submit a fresh lead using an inbox you control when testing the email branch. The workflow sends an acknowledgement for high- and medium-priority leads. Its final HTTP Request reports the SMTP server's accepted recipients to `POST /api/leads/{id}/email-sent`.
 
-## Planned Workflow: `lead_automation.json`
-- **Trigger:** Webhook from FastAPI backend (`POST /webhook/lead-intake`)
-- **Step 1:** Payload validation & normalization
-- **Step 2:** Request to local Ollama API (`POST http://localhost:11434/api/generate` or `/api/chat`)
-- **Step 3:** Conditional IF branching based on priority score (HIGH, MEDIUM, LOW)
-- **Step 4:** Outreach draft assembly
-- **Step 5:** Callback to FastAPI (`PUT /api/leads/{id}`) with updated `priority` and `ai_analysis`
-- **Fallback:** Rule-based heuristic scoring if Ollama is unreachable
+The backend records the first SMTP acceptance of the lead's address. If the send is skipped, fails, or is accepted for another address, the dashboard shows **Unconfirmed**. An accepted recipient confirms SMTP acceptance only.
 
-## Record email status in LeadFlow
-
-In the active workflow, add an **HTTP Request** node after **Send an Email**. Leave the email node's **On Error** setting at **Stop Workflow**. Configure the callback as follows:
-
-| Field | Value |
-| --- | --- |
-| Method | `POST` |
-| URL (Expression) | `{{ 'http://127.0.0.1:8010/api/leads/' + $('HTTP Request').first().json.id + '/email-sent' }}` |
-| Send Body | On |
-| Body Content Type | JSON |
-| Specify Body | Using JSON |
-| JSON (Expression) | `{{ { accepted: $json.accepted ?? [] } }}` |
-
-`HTTP Request` in the URL refers to the existing lead-analysis node. Use its actual name if renamed. Set **To Email** on the email node to `{{ $json.email }}`. To test, submit a fresh lead with an inbox you control as its email address. Restart FastAPI to apply the SQLite schema change, then publish the workflow.
-
-The callback records the first SMTP acceptance of the lead's address. A failed send, a skipped send, or a send to another address leaves the status **Unconfirmed**. SMTP acceptance does not establish inbox delivery. In the dashboard, **Leads** shows the status and **Lead Details** shows the recorded time.
+The imported workflow uses `http://127.0.0.1:8010` in its HTTP Request nodes. If n8n runs in a container or on another host, change those URLs to an address reachable from n8n.
